@@ -1,3 +1,5 @@
+![CI](https://github.com/ivanrivasgr/soccer-data-platform-demo/actions/workflows/ci.yml/badge.svg)
+
 # Soccer Data Platform Demo
 
 Example of an end-to-end data engineering pipeline for soccer tracking analytics.
