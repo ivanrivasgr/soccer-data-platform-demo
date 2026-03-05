@@ -1,6 +1,8 @@
-![CI](https://github.com/ivanrivasgr/soccer-data-platform-demo/actions/workflows/ci.yml/badge.svg)
-
 # Soccer Data Platform Demo
+
+![CI](https://github.com/ivanrivasgr/soccer-data-platform-demo/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.10-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 Example of an end-to-end data engineering pipeline for soccer tracking analytics.
 
