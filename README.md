@@ -1,143 +1,201 @@
 # Soccer Data Platform Demo
 
-Example of a modern data pipeline for soccer tracking data.
+Example of an end-to-end data engineering pipeline for soccer tracking analytics.
 
-This project simulates a production-style sports analytics pipeline with data validation, transformation, and analytics layers.
+This project simulates a production-style sports analytics data platform including data ingestion, validation, transformation, analytics modeling, and infrastructure examples.
 
-## Architecture
+The goal is to demonstrate modern data engineering practices such as reproducible pipelines, CI/CD automation, infrastructure-as-code, and workflow orchestration.
 
-Pipeline stages:
+---
 
-Raw Data → Validation → Transform → Analytics
+# Pipeline Architecture
 
-- Synthetic tracking data generation
-- Data quality validation
-- Quarantine of anomalous records
-- Feature engineering (distance travelled)
-- Player-level analytics tables
+![Pipeline Architecture](architecture/soccer_pipeline_architecture.png)
 
-## Data Layers
+The pipeline follows a modern **Bronze → Silver → Gold** data architecture.
 
-### Bronze
-Raw tracking data
+| Layer | Description |
+|------|-------------|
+| Bronze | Raw GPS tracking data |
+| Silver | Clean and validated tracking data stored in Parquet |
+| Gold | Analytics-ready player metrics for dashboards |
 
-### Silver
-Validated and cleaned tracking data stored in Parquet
+---
 
-### Gold
-Analytics-ready tables for dashboards
+# Project Structure
 
-Example metrics:
+soccer-data-platform-demo
+│
+├── src/ # pipeline scripts
+├── data/ # generated sample datasets
+├── monitoring/ # data quality reports
+├── airflow/ # example orchestration DAG
+├── terraform/ # infrastructure-as-code example
+├── architecture/ # pipeline architecture diagram
+├── tests/ # placeholder for pipeline tests
+├── config/ # configuration placeholders
+│
+├── .github/workflows # CI/CD pipeline
+├── Makefile # run full pipeline locally
+├── requirements.txt # python dependencies
+└── README.md
 
-- total distance per player
-- average speed
-- max speed
-- session samples
+---
 
-## Data Quality Checks
+# Pipeline Stages
 
-- missing timestamps
-- duplicate records
-- speed spikes
+The pipeline simulates a typical sports tracking analytics workflow.
+
+### 1️ Data Generation
+
+Synthetic player tracking data is generated to simulate GPS data collected during soccer sessions.
+
+```
+python src/generate_sample_data.py
+```
+
+---
+
+### 2️ Data Validation
+
+Quality checks are applied to ensure reliability of the tracking data.
+
+Validation checks include:
+
+- duplicate record detection
+- missing timestamp detection
+- speed anomaly detection
 - schema validation
 
-Invalid records are moved to quarantine.
+Invalid records are moved to a quarantine dataset.
 
-## Running locally
+```
+python src/validate.py
+```
 
-# Generate data
+---
 
- python src/generate_sample_data.py
+### 3️3 Data Transformation
 
-# Validate
+Validated tracking data is transformed into a structured dataset suitable for analytics.
 
- python src/validate.py
+```
+python src/transform.py
+```
 
-# Transform
+The cleaned dataset is stored in **Parquet format** in the Silver layer.
 
- python src/transform.py
+---
 
-# Build Analytics
+### 4️. Analytics Layer
 
- python src/build_analytics.py
+Player-level metrics are computed from the cleaned tracking data.
 
+```
+python src/build_analytics.py
+```
 
-## CI/CD
-
-GitHub Actions automatically runs the pipeline on every commit.
-
-## Example output
-
- data/analytics/player_session_metrics.csv
-
-
-Example metrics table:
+Example metrics:
 
 | player_id | session_id | total_distance_m | avg_speed | max_speed |
 |-----------|-----------|-----------------|-----------|-----------|
 | P001 | S001 | 10234 | 2.7 | 8.1 |
 
-## Purpose
+Output location:
 
-This project demonstrates:
+```
+data/analytics/player_session_metrics.csv
+```
 
-- data engineering pipeline design
-- data quality monitoring
-- reproducible analytics pipelines
-- CI/CD automation
+---
 
-The architecture can be deployed in cloud platforms such as AWS using services like:
+## Running the Full Pipeline
 
-- S3
-- Athena
-- ECS / Lambda
-- EventBridge
+The entire pipeline can be executed locally using the Makefile:
 
-## Architecture
+```bash
+make pipeline
+```
 
-![Pipeline Architecture](architecture/soccer_pipeline_architecture.png)
+This runs:
+
+1. synthetic data generation  
+2. data validation  
+3. data transformation  
+4. analytics table creation
+
+## Data Quality Monitoring
+
+Data quality metrics are logged during the validation stage.
+
+Example output:
+
+```
+monitoring/quality_report.json
+```
+
+The report includes:
+
+- invalid record counts
+- anomaly detection statistics
+- validation results
+
+This simulates basic **data observability practices**.
+
+## CI/CD Pipeline
+
+The repository includes a **GitHub Actions workflow** that automatically executes the pipeline on every commit.
+
+Location:
+
+```
+.github/workflows/ci.yml
+```
+
+This demonstrates how a data pipeline can be continuously validated during development.
+
+---
 
 ## Infrastructure as Code
 
-This project includes an example Terraform configuration to demonstrate how the pipeline could be deployed in AWS.
+This repository includes an example **Terraform configuration** to illustrate how the pipeline could be deployed in a cloud environment.
 
-The Terraform configuration provisions a simple data lake structure using Amazon S3:
+Location:
 
-- raw data layer
-- processed data layer
-- analytics layer
+```
+terraform/main.tf
+```
 
-Example structure:
+The configuration provisions a simplified **data lake structure using Amazon S3**:
 
-raw data → S3 bucket  
-processed data → S3 bucket  
-analytics tables → S3 bucket
+- raw data layer  
+- processed data layer  
+- analytics layer  
 
-This infrastructure would support running the pipeline using services such as:
+This infrastructure could support execution using:
 
-- AWS Lambda or ECS for transformations
-- EventBridge for scheduling
-- Athena for analytics queries
-- Metabase or PowerBI for dashboards
+- AWS Lambda or ECS for processing  
+- Amazon EventBridge for event scheduling  
+- Amazon Athena for querying analytics tables  
+- BI tools such as Metabase or PowerBI for visualization  
 
- ## Production Deployment Architecture
-
-In a real production environment this pipeline could run as:
-
-1. GPS tracking data is uploaded to the raw S3 bucket.
-2. EventBridge detects new files and triggers a processing job.
-3. A compute layer (Lambda or ECS) runs validation and transformations.
-4. Clean datasets are stored in the processed layer as Parquet files.
-5. Analytics tables are built for downstream consumption.
-6. BI tools such as Metabase or PowerBI query the data through Athena.
-
-This architecture follows a modern Bronze → Silver → Gold data lake design.
+---
 
 ## Pipeline Orchestration
 
-In a production environment this pipeline would typically be orchestrated using a workflow scheduler such as Apache Airflow or Prefect.
+In production environments this pipeline would typically be orchestrated using a workflow scheduler such as:
 
-Each stage of the pipeline would run as an independent task in a DAG:
+- Apache Airflow  
+- Prefect  
+- Dagster  
+
+An example **Airflow DAG** is included in the repository:
+
+```
+airflow/soccer_pipeline_dag.py
+```
+
+The DAG defines tasks for each pipeline stage:
 
 1. ingest_tracking_data  
 2. validate_tracking_data  
@@ -145,34 +203,56 @@ Each stage of the pipeline would run as an independent task in a DAG:
 4. build_player_metrics  
 5. publish_analytics_tables  
 
-The scripts in this repository (`generate_sample_data.py`, `validate.py`, `transform.py`, `build_analytics.py`) represent the individual tasks that would be executed by the orchestration layer.
+The orchestration layer would manage:
 
-Airflow would manage:
+- task execution order  
+- retries and failure handling  
+- scheduling  
+- monitoring  
 
-- scheduling
-- task dependencies
-- retries
-- failure monitoring
+---
 
-## Example Airflow DAG
+## Production Deployment Architecture
 
-An example DAG is included in the repository to demonstrate how the pipeline could be orchestrated using Apache Airflow.
+In a real production environment the pipeline could run as follows:
 
-Location:
+1. GPS tracking data is uploaded to a raw S3 bucket.  
+2. EventBridge detects new files and triggers a processing job.  
+3. A compute layer (Lambda or ECS) executes validation and transformations.  
+4. Clean datasets are stored in the processed layer as Parquet files.  
+5. Analytics tables are built for downstream consumption.  
+6. BI tools such as Metabase or PowerBI query the data through Athena.  
 
-soccer_pipeline_dag.py
+This architecture follows the modern **Bronze → Silver → Gold data lake design pattern**.
 
-The DAG defines tasks corresponding to each pipeline stage and sets their execution order.
+---
 
-## Running the Full Pipeline
+## Dependencies
 
-You can run the entire pipeline locally using the Makefile:
+Minimal Python dependencies:
 
-make pipeline
+```
+pandas
+pyarrow
+```
 
-This will execute the full workflow:
+Additional tools such as **Airflow** or **Terraform** are included only as architectural examples.
 
-1. generate synthetic data
-2. validate raw data
-3. transform datasets
-4. build analytics tables
+---
+
+## Purpose of the Project
+
+This repository demonstrates:
+
+- data pipeline design  
+- data quality validation  
+- analytics feature engineering  
+- reproducible data workflows  
+- CI/CD for data pipelines  
+- infrastructure-as-code patterns  
+- workflow orchestration design  
+
+The project is intended as a **portfolio demonstration of modern data engineering practices applied to sports analytics**.
+
+
+
