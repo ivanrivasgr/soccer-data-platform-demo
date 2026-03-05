@@ -17,19 +17,19 @@ def main():
 
     total_rows = len(df)
 
-    # -------- Missing timestamps
+    # Missing timestamps
     missing_ts = df["ts"].isna().sum()
 
-    # -------- Duplicates
+    # Duplicates
     duplicates = df.duplicated(subset=["player_id", "ts", "session_id"]).sum()
 
-    # -------- Speed spikes
+    # Speed spikes
     speed_spikes = (df["speed_mps"] > SPEED_THRESHOLD).sum()
 
-    # -------- Invalid player IDs
+    # Invalid player IDs
     invalid_players = df[~df["player_id"].str.startswith("P")].shape[0]
 
-    # -------- Quarantine rows
+    # Quarantine rows
     quarantine_df = df[
         (df["ts"].isna())
         | (df["speed_mps"] > SPEED_THRESHOLD)

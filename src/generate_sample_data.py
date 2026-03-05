@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 import math
 import pandas as pd
 
-# -----------------------------
+# 
 # Synthetic tracking data generator
 # - realistic-ish soccer tracking rows
 # - includes anomalies: duplicates, missing timestamps, speed spikes
-# -----------------------------
+# 
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW_DIR = os.path.join(PROJECT_ROOT, "data", "raw")
@@ -97,9 +97,9 @@ def generate_tracking(sessions_df, n_players=18, hz=1):
 
     df = pd.DataFrame(rows)
 
-    # -----------------------------
+    # 
     # Inject anomalies
-    # -----------------------------
+    # 
 
     # 1) Duplicates: duplicate ~0.5% of rows
     n_dup = max(1, int(0.005 * len(df)))
@@ -137,7 +137,7 @@ def main():
     sessions.to_csv(sessions_path, index=False)
     tracking.to_csv(tracking_path, index=False)
 
-    print("✅ Generated sample data:")
+    print(" Generated sample data:")
     print(f"- {sessions_path}  (rows={len(sessions)})")
     print(f"- {tracking_path}  (rows={len(tracking)})")
     print("\nSample tracking rows:")
