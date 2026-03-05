@@ -22,23 +22,25 @@ The pipeline follows a modern **Bronze → Silver → Gold** data architecture.
 
 ---
 
-# Project Structure
+## Project Structure
 
+```
 soccer-data-platform-demo
 │
-├── src/ # pipeline scripts
-├── data/ # generated sample datasets
-├── monitoring/ # data quality reports
-├── airflow/ # example orchestration DAG
-├── terraform/ # infrastructure-as-code example
-├── architecture/ # pipeline architecture diagram
-├── tests/ # placeholder for pipeline tests
-├── config/ # configuration placeholders
+├── src/                 # pipeline scripts
+├── data/                # generated sample datasets
+├── monitoring/          # data quality reports
+├── airflow/             # example orchestration DAG
+├── terraform/           # infrastructure-as-code example
+├── architecture/        # pipeline architecture diagram
+├── tests/               # placeholder for pipeline tests
+├── config/              # configuration placeholders
 │
-├── .github/workflows # CI/CD pipeline
-├── Makefile # run full pipeline locally
-├── requirements.txt # python dependencies
+├── .github/workflows    # CI/CD pipeline
+├── Makefile             # run full pipeline locally
+├── requirements.txt     # python dependencies
 └── README.md
+```
 
 ---
 
