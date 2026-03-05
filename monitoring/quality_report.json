@@ -1,0 +1,9 @@
+{
+  "total_rows": 358182,
+  "missing_timestamps": 716,
+  "duplicate_rows": 2417,
+  "speed_spikes": 716,
+  "invalid_player_ids": 0,
+  "rows_quarantined": 1431,
+  "rows_valid": 356751
+}

@@ -1,0 +1,46 @@
+name: Soccer Data Pipeline CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas pyarrow
+
+      - name: Generate synthetic data
+        run: |
+          python src/generate_sample_data.py
+
+      - name: Run validation
+        run: |
+          python src/validate.py
+
+      - name: Run transformation
+        run: |
+          python src/transform.py
+
+      - name: Build analytics table
+        run: |
+          python src/build_analytics.py
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: analytics_output
+          path: |
+            data/analytics/player_session_metrics.csv
+            monitoring/quality_report.json
