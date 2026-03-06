@@ -50,13 +50,13 @@ if uploaded_file is not None:
         with st.spinner("Running pipeline..."):
 
             st.info("Running validation...")
-            subprocess.run([sys.executable, "src/validate.py", file_path])
+            subprocess.run([sys.executable, "src/validate.py", file_path], check=True)
 
             st.info("Running transformation...")
-            subprocess.run([sys.executable, "src/validate.py", file_path])
+            subprocess.run([sys.executable, "src/transform.py", file_path], check=True)
 
             st.info("Building analytics metrics...")
-            subprocess.run([sys.executable, "src/transform.py", file_path])
+            subprocess.run([sys.executable, "src/build_analytics.py", file_path], check=True)
 
         st.success("Pipeline completed!")
 
