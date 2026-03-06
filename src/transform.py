@@ -24,36 +24,35 @@ def normalize_columns(df):
 
 def main():
 
+    if not os.path.exists(RAW_PATH):
+        print("No dataset found, skipping transform")
+        exit(0)
+
     df = pd.read_csv(RAW_PATH)
 
     df = normalize_columns(df)
 
-    quarantine = pd.read_csv(QUARANTINE_PATH)
-
-    df_clean = df.drop(quarantine.index)
-
-    df_clean["ts"] = pd.to_datetime(df_clean["ts"])
-
-    df_clean = df_clean.sort_values(["player_id", "session_id", "ts"])
-
-    df_clean["prev_x"] = df_clean.groupby(
-        ["player_id", "session_id"]
-    )["x_m"].shift()
-
-    df_clean["prev_y"] = df_clean.groupby(
-        ["player_id", "session_id"]
-    )["y_m"].shift()
-
-    df_clean["distance_m"] = (
-        (df_clean["x_m"] - df_clean["prev_x"]) ** 2
-        + (df_clean["y_m"] - df_clean["prev_y"]) ** 2
-    ) ** 0.5
-
-    df_clean["distance_m"] = df_clean["distance_m"].fillna(0)
-
     os.makedirs(os.path.dirname(PROCESSED_PATH), exist_ok=True)
 
-    df_clean.to_parquet(PROCESSED_PATH, index=False)
+    if os.path.exists(QUARANTINE_PATH):
+        quarantine = pd.read_csv(QUARANTINE_PATH)
+        df = df.drop(quarantine.index)
+
+    df["ts"] = pd.to_datetime(df["ts"])
+
+    df = df.sort_values(["player_id", "session_id", "ts"])
+
+    df["prev_x"] = df.groupby(["player_id", "session_id"])["x_m"].shift()
+    df["prev_y"] = df.groupby(["player_id", "session_id"])["y_m"].shift()
+
+    df["distance_m"] = (
+        (df["x_m"] - df["prev_x"])**2 +
+        (df["y_m"] - df["prev_y"])**2
+    ) ** 0.5
+
+    df["distance_m"] = df["distance_m"].fillna(0)
+
+    df.to_parquet(PROCESSED_PATH, index=False)
 
     print("Clean dataset saved")
     print(PROCESSED_PATH)

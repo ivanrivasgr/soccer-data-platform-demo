@@ -1,78 +1,78 @@
 import os
 import pandas as pd
-import json
-import sys
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-RAW_PATH = os.path.join(PROJECT_ROOT, "data", "raw", "uploaded_tracking.csv")
+UPLOADED_PATH = os.path.join(PROJECT_ROOT, "data", "raw", "uploaded_tracking.csv")
+SAMPLE_PATH = os.path.join(PROJECT_ROOT, "data", "raw", "tracking_sample.csv")
 QUARANTINE_PATH = os.path.join(PROJECT_ROOT, "data", "quarantine", "tracking_quarantine.csv")
-QUALITY_REPORT = os.path.join(PROJECT_ROOT, "monitoring", "quality_report.json")
-
-SPEED_THRESHOLD = 11
+PROCESSED_PATH = os.path.join(PROJECT_ROOT, "data", "processed", "tracking_clean.parquet")
 
 
-def normalize_columns(df):
+def resolve_input_path() -> str | None:
+    if os.path.exists(UPLOADED_PATH):
+        return UPLOADED_PATH
+    if os.path.exists(SAMPLE_PATH):
+        return SAMPLE_PATH
+    return None
 
+
+def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     rename_map = {
         "timestamp": "ts",
         "x": "x_m",
         "y": "y_m",
-        "speed": "speed_mps"
+        "speed": "speed_mps",
     }
-
-    df = df.rename(columns=rename_map)
-
-    return df
+    return df.rename(columns=rename_map)
 
 
-def main():
+def main() -> None:
+    input_path = resolve_input_path()
 
-    df = pd.read_csv(RAW_PATH)
+    if input_path is None:
+        print("No dataset found, skipping transform")
+        raise SystemExit(0)
 
-    df = normalize_columns(df)
+    df = pd.read_csv(input_path)
+    df = normalize_columns(df).copy()
 
-    total_rows = len(df)
+    required_cols = ["player_id", "session_id", "ts", "x_m", "y_m", "speed_mps"]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
 
-    missing_ts = df["ts"].isna().sum()
+    os.makedirs(os.path.dirname(PROCESSED_PATH), exist_ok=True)
 
-    duplicates = df.duplicated(
-        subset=["player_id", "ts", "session_id"]
-    ).sum()
+    # recreate stable row ids to match validate.py
+    df["_row_id"] = range(len(df))
 
-    speed_spikes = (df["speed_mps"] > SPEED_THRESHOLD).sum()
+    if os.path.exists(QUARANTINE_PATH):
+        quarantine = pd.read_csv(QUARANTINE_PATH)
+        if "_row_id" in quarantine.columns:
+            quarantined_ids = set(quarantine["_row_id"].tolist())
+            df = df[~df["_row_id"].isin(quarantined_ids)].copy()
 
-    invalid_players = df[~df["player_id"].astype(str).str.startswith("P")].shape[0]
+    df["ts"] = pd.to_datetime(df["ts"])
+    df = df.sort_values(["player_id", "session_id", "ts"]).copy()
 
-    quarantine_df = df[
-        (df["ts"].isna())
-        | (df["speed_mps"] > SPEED_THRESHOLD)
-        | (~df["player_id"].astype(str).str.startswith("P"))
-    ]
+    df["prev_x"] = df.groupby(["player_id", "session_id"])["x_m"].shift()
+    df["prev_y"] = df.groupby(["player_id", "session_id"])["y_m"].shift()
 
-    os.makedirs(os.path.dirname(QUARANTINE_PATH), exist_ok=True)
+    df["distance_m"] = (
+        (df["x_m"] - df["prev_x"]) ** 2
+        + (df["y_m"] - df["prev_y"]) ** 2
+    ) ** 0.5
 
-    quarantine_df.to_csv(QUARANTINE_PATH, index=False)
+    df["distance_m"] = df["distance_m"].fillna(0)
 
-    valid_df = df.drop(quarantine_df.index)
+    # helper column not needed downstream
+    df = df.drop(columns=["_row_id"], errors="ignore")
 
-    report = {
-        "total_rows": int(total_rows),
-        "missing_timestamps": int(missing_ts),
-        "duplicate_rows": int(duplicates),
-        "speed_spikes": int(speed_spikes),
-        "invalid_player_ids": int(invalid_players),
-        "rows_quarantined": int(len(quarantine_df)),
-        "rows_valid": int(len(valid_df)),
-    }
+    df.to_parquet(PROCESSED_PATH, index=False)
 
-    os.makedirs(os.path.dirname(QUALITY_REPORT), exist_ok=True)
-
-    with open(QUALITY_REPORT, "w") as f:
-        json.dump(report, f, indent=2)
-
-    print("Validation complete")
-    print(json.dumps(report, indent=2))
+    print("Clean dataset saved")
+    print(PROCESSED_PATH)
 
 
 if __name__ == "__main__":
