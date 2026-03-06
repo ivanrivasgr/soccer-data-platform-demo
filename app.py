@@ -3,6 +3,7 @@ import subprocess
 import pandas as pd
 import os
 import plotly.express as px
+import sys
 
 st.set_page_config(
     page_title="Soccer Tracking Analytics",
@@ -49,13 +50,13 @@ if uploaded_file is not None:
         with st.spinner("Running pipeline..."):
 
             st.info("Running validation...")
-            subprocess.run(["python", "src/validate.py"])
+            subprocess.run([sys.executable, "src/validate.py", file_path])
 
             st.info("Running transformation...")
-            subprocess.run(["python", "src/transform.py"])
+            subprocess.run([sys.executable, "src/validate.py", file_path])
 
             st.info("Building analytics metrics...")
-            subprocess.run(["python", "src/build_analytics.py"])
+            subprocess.run([sys.executable, "src/transform.py", file_path])
 
         st.success("Pipeline completed!")
 
