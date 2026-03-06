@@ -5,6 +5,15 @@ import os
 import plotly.express as px
 import sys
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+tracking_path = os.path.join(
+    PROJECT_ROOT,
+    "data",
+    "processed",
+    "tracking_clean.parquet"
+)
+
 st.set_page_config(
     page_title="Soccer Tracking Analytics",
     layout="wide"
