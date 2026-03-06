@@ -8,7 +8,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if len(sys.argv) > 1:
     input_file = sys.argv[1]
 else:
-    input_file = os.path.join(PROJECT_ROOT, "data", "raw", "uploaded_tracking.csv")
+    input_file = os.path.join(PROJECT_ROOT, "data", "raw", "tracking_sample.csv")
 
 QUARANTINE_PATH = os.path.join(PROJECT_ROOT, "data", "quarantine", "tracking_quarantine.csv")
 QUALITY_REPORT = os.path.join(PROJECT_ROOT, "monitoring", "quality_report.json")
