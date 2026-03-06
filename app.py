@@ -40,6 +40,10 @@ if uploaded_file is not None:
 
     st.success("CSV uploaded successfully.")
 
+    df = pd.read_csv(file_path)
+
+    st.write("Rows Loaded:", len(df))
+
     if st.button("⚡ Run Full Pipeline"):
 
         with st.spinner("Running pipeline..."):
