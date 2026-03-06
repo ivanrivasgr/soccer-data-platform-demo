@@ -157,32 +157,34 @@ if os.path.exists(tracking_path):
 
         st.write(f"Showing movement density for player: **{player}**")
 
-        fig_heatmap = px.density_heatmap(
+        fig_tracking = px.line(
             player_data,
             x="x_m",
             y="y_m",
-            nbinsx=120,
-            nbinsy=70,
-            color_continuous_scale=[
-                (0.0, "#1f5d2b"),
-                (0.25, "#2f8f3a"),
-                (0.5, "#9fd34d"),
-                (0.75, "#f4d03f"),
-                (1.0, "#e74c3c")
-            ],
-            title=f"Player Heatmap — {player}"
+            title=f"Player Movement Path — {player}"
         )
 
-        fig_heatmap.update_traces(opacity=0.9)
+        fig_tracking.update_traces(
+            line=dict(width=1),
+            opacity=0.6
+        )
 
-        fig_heatmap.update_layout(
+        pivot_points = px.scatter(
+            player_data.iloc[::25],
+            x="x_m",
+            y="y_m"
+        )
+
+        fig_tracking.add_trace(pivot_points.data[0])
+
+        fig_tracking.update_layout(
             xaxis_title="Field X Position",
             yaxis_title="Field Y Position",
             xaxis=dict(range=[0,105]),
             yaxis=dict(range=[0,68])
         )
 
-        fig_heatmap.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
-        fig_heatmap.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
+        fig_tracking.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
+        fig_tracking.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
 
-        st.plotly_chart(fig_heatmap, width="stretch")
+        st.plotly_chart(fig_tracking, width="stretch")
