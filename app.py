@@ -144,21 +144,27 @@ if os.path.exists(tracking_path):
         st.divider()
         st.header("Player Movement Heatmap")
 
-        top_player = tracking["player_id"].value_counts().idxmax()
+        player = st.selectbox(
+            "Select player",
+            sorted(tracking["player_id"].unique())
+        )
 
-        player_data = tracking[tracking["player_id"] == top_player].copy()
+        player_data = tracking[tracking["player_id"] == player].copy()
         player_data = player_data.sort_values("ts")
 
-        st.write(f"Showing movement density for player: **{top_player}**")
+        # limit frames to a smaller period
+        player_data = player_data.iloc[:2000]
+
+        st.write(f"Showing movement density for player: **{player}**")
 
         fig_heatmap = px.density_heatmap(
             player_data,
             x="x_m",
             y="y_m",
-            nbinsx=40,
-            nbinsy=25,
+            nbinsx=120,
+            nbinsy=70,
             color_continuous_scale="Turbo",
-            title=f"Player Heatmap — {top_player}"
+            title=f"Player Heatmap — {player}"
         )
 
         fig_heatmap.update_layout(
