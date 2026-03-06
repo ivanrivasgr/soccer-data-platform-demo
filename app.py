@@ -130,29 +130,26 @@ if os.path.exists(tracking_path):
 
     tracking = pd.read_csv(tracking_path)
 
-    if {"x", "y", "player_id"}.issubset(tracking.columns):
+    if {"x", "y", "player_id", "ts"}.issubset(tracking.columns):
 
         st.divider()
+        st.header("Player Movement Visualization")
 
-        st.header("Player Movement Visualization (Top 10 Players)")
+        # select player with most samples
+        top_player = tracking["player_id"].value_counts().idxmax()
 
-        
-        top_players = (
-            tracking["player_id"]
-            .value_counts()
-            .head(10)
-            .index
-        )
+        player_data = tracking[tracking["player_id"] == top_player].copy()
 
-        tracking_top = tracking[tracking["player_id"].isin(top_players)]
+        # sort by time
+        player_data = player_data.sort_values("ts")
 
-        fig_tracking = px.scatter(
-            tracking_top,
+        st.write(f"Showing movement trajectory for player: **{top_player}**")
+
+        fig_tracking = px.line(
+            player_data,
             x="x",
             y="y",
-            color="player_id",
-            title="Player Tracking Positions (Top 10 Players)",
-            opacity=0.7
+            title=f"Player Movement Path — {top_player}"
         )
 
         fig_tracking.update_layout(
