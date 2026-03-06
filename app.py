@@ -1,24 +1,35 @@
 import streamlit as st
-import pandas as pd
 import subprocess
+import pandas as pd
 import os
+import plotly.express as px
 
-st.set_page_config(page_title="Soccer Tracking Demo", layout="wide")
+st.set_page_config(
+    page_title="Soccer Tracking Analytics",
+    layout="wide"
+)
 
 st.title("⚽ Soccer Tracking Data Pipeline")
 
-st.write("""
-Demo of a sports analytics pipeline processing GPS tracking data.
+st.markdown("""
+Demo of a **sports analytics data pipeline** processing **GPS tracking data**.
 
-Pipeline stages:
-1. Data validation
-2. Transformation
-3. Player performance metrics
+### Pipeline stages
+
+1️. Data validation  
+2️. Data transformation  
+3️. Player performance metrics  
+4️. Analytics visualization
 """)
 
-uploaded_file = st.file_uploader("Upload GPS Tracking CSV", type=["csv"])
+st.divider()
 
-if uploaded_file:
+uploaded_file = st.file_uploader(
+    "Upload GPS Tracking CSV",
+    type=["csv"]
+)
+
+if uploaded_file is not None:
 
     os.makedirs("data/raw", exist_ok=True)
 
@@ -27,38 +38,111 @@ if uploaded_file:
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
 
-    st.success("File uploaded")
+    st.success("CSV uploaded successfully.")
 
-    if st.button("Run Pipeline"):
+    if st.button("⚡ Run Full Pipeline"):
 
-        subprocess.run(["python", "src/validate.py"])
-        subprocess.run(["python", "src/transform.py"])
-        subprocess.run(["python", "src/build_analytics.py"])
+        with st.spinner("Running pipeline..."):
 
-        result_path = "data/analytics/player_session_metrics.csv"
+            st.info("Running validation...")
+            subprocess.run(["python", "src/validate.py"])
 
-        if os.path.exists(result_path):
+            st.info("Running transformation...")
+            subprocess.run(["python", "src/transform.py"])
 
-            df = pd.read_csv(result_path)
+            st.info("Building analytics metrics...")
+            subprocess.run(["python", "src/build_analytics.py"])
 
-            st.success("Pipeline executed successfully")
+        st.success("Pipeline completed!")
 
-            total_distance = int(df["total_distance_m"].sum())
-            avg_speed = round(df["avg_speed"].mean(),2)
-            max_speed = round(df["max_speed"].max(),2)
+result_path = "data/analytics/player_session_metrics.csv"
+tracking_path = "data/raw/uploaded_tracking.csv"
 
-            col1, col2, col3 = st.columns(3)
+if os.path.exists(result_path):
 
-            col1.metric("Total Distance (m)", total_distance)
-            col2.metric("Average Speed (m/s)", avg_speed)
-            col3.metric("Max Speed (m/s)", max_speed)
+    df = pd.read_csv(result_path)
 
-            st.subheader("Distance by Player")
-            st.bar_chart(df.set_index("player_id")["total_distance_m"])
+    st.divider()
 
-            st.subheader("Player Metrics Table")
-            st.dataframe(df)
+    st.header("Player Performance Metrics")
 
-        else:
+    col1, col2, col3 = st.columns(3)
 
-            st.error("Pipeline output not found")
+    col1.metric(
+        "Total Distance (m)",
+        round(df["total_distance_m"].sum(), 2)
+    )
+
+    col2.metric(
+        "Average Speed",
+        round(df["avg_speed"].mean(), 2)
+    )
+
+    col3.metric(
+        "Max Speed",
+        round(df["max_speed"].max(), 2)
+    )
+
+    st.divider()
+
+    st.subheader("Analytics Table")
+
+    st.dataframe(df, use_container_width=True)
+
+    st.download_button(
+        "Download Metrics CSV",
+        df.to_csv(index=False),
+        file_name="player_metrics.csv",
+        mime="text/csv"
+    )
+
+    st.divider()
+
+    st.header("Distance by Player")
+
+    fig_distance = px.bar(
+        df,
+        x="player_id",
+        y="total_distance_m",
+        title="Total Distance per Player",
+        color="player_id"
+    )
+
+    st.plotly_chart(fig_distance, use_container_width=True)
+
+    st.header("Speed Distribution")
+
+    fig_speed = px.histogram(
+        df,
+        x="avg_speed",
+        nbins=20,
+        title="Average Speed Distribution"
+    )
+
+    st.plotly_chart(fig_speed, use_container_width=True)
+
+if os.path.exists(tracking_path):
+
+    tracking = pd.read_csv(tracking_path)
+
+    if {"x", "y", "player_id"}.issubset(tracking.columns):
+
+        st.divider()
+
+        st.header("Player Movement Visualization")
+
+        fig_tracking = px.scatter(
+            tracking,
+            x="x",
+            y="y",
+            color="player_id",
+            title="Player Tracking Positions",
+            opacity=0.7
+        )
+
+        fig_tracking.update_layout(
+            xaxis_title="Field X Position",
+            yaxis_title="Field Y Position"
+        )
+
+        st.plotly_chart(fig_tracking, use_container_width=True)
