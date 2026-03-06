@@ -61,7 +61,7 @@ if uploaded_file is not None:
         st.success("Pipeline completed!")
 
 result_path = "data/analytics/player_session_metrics.csv"
-tracking_path = "data/raw/uploaded_tracking.csv"
+tracking_path = "data/raw/tracking_clean.parquet"
 
 if os.path.exists(result_path):
 
@@ -128,27 +128,25 @@ if os.path.exists(result_path):
 
 if os.path.exists(tracking_path):
 
-    tracking = pd.read_csv(tracking_path)
+    tracking = pd.read_parquet(tracking_path)
 
-    if {"x", "y", "player_id", "ts"}.issubset(tracking.columns):
+    if {"x_m", "y_m", "player_id", "ts"}.issubset(tracking.columns):
 
         st.divider()
         st.header("Player Movement Visualization")
 
-        # select player with most samples
         top_player = tracking["player_id"].value_counts().idxmax()
 
         player_data = tracking[tracking["player_id"] == top_player].copy()
 
-        # sort by time
         player_data = player_data.sort_values("ts")
 
         st.write(f"Showing movement trajectory for player: **{top_player}**")
 
         fig_tracking = px.line(
             player_data,
-            x="x",
-            y="y",
+            x="x_m",
+            y="y_m",
             title=f"Player Movement Path — {top_player}"
         )
 
