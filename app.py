@@ -142,39 +142,33 @@ if os.path.exists(tracking_path):
     if {"x_m", "y_m", "player_id", "ts"}.issubset(tracking.columns):
 
         st.divider()
-        st.header("Player Movement Visualization")
+        st.header("Player Movement Heatmap")
 
         top_player = tracking["player_id"].value_counts().idxmax()
 
         player_data = tracking[tracking["player_id"] == top_player].copy()
-
         player_data = player_data.sort_values("ts")
 
-        st.write(f"Showing movement trajectory for player: **{top_player}**")
+        st.write(f"Showing movement density for player: **{top_player}**")
 
-        fig_tracking = px.line(
+        fig_heatmap = px.density_heatmap(
             player_data,
             x="x_m",
             y="y_m",
-            title=f"Player Movement Path — {top_player}"
+            nbinsx=40,
+            nbinsy=25,
+            color_continuous_scale="Turbo",
+            title=f"Player Heatmap — {top_player}"
         )
 
-        fig_tracking.update_layout(
+        fig_heatmap.update_layout(
             xaxis_title="Field X Position",
             yaxis_title="Field Y Position",
             xaxis=dict(range=[0,105]),
             yaxis=dict(range=[0,68])
         )
 
-        # draw soccer pitch lines
-        fig_tracking.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
+        fig_heatmap.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
+        fig_heatmap.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
 
-        # midfield line
-        fig_tracking.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
-
-        # center circle
-        fig_tracking.add_shape(type="circle", x0=47.5, y0=29.5, x1=57.5, y1=39.5, line=dict(color="white"))
-        
-        
-
-        st.plotly_chart(fig_tracking, width="stretch")
+        st.plotly_chart(fig_heatmap, width="stretch")
