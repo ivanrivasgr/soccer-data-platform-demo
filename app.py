@@ -163,9 +163,17 @@ if os.path.exists(tracking_path):
             y="y_m",
             nbinsx=120,
             nbinsy=70,
-            color_continuous_scale="Turbo",
+            color_continuous_scale=[
+                (0.0, "#1f5d2b"),
+                (0.25, "#2f8f3a"),
+                (0.5, "#9fd34d"),
+                (0.75, "#f4d03f"),
+                (1.0, "#e74c3c")
+            ],
             title=f"Player Heatmap — {player}"
         )
+
+        fig_heatmap.update_traces(opacity=0.9)
 
         fig_heatmap.update_layout(
             xaxis_title="Field X Position",
