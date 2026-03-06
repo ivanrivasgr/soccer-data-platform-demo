@@ -161,7 +161,20 @@ if os.path.exists(tracking_path):
 
         fig_tracking.update_layout(
             xaxis_title="Field X Position",
-            yaxis_title="Field Y Position"
+            yaxis_title="Field Y Position",
+            xaxis=dict(range=[0,105]),
+            yaxis=dict(range=[0,68])
         )
+
+        # draw soccer pitch lines
+        fig_tracking.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
+
+        # midfield line
+        fig_tracking.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
+
+        # center circle
+        fig_tracking.add_shape(type="circle", x0=47.5, y0=29.5, x1=57.5, y1=39.5, line=dict(color="white"))
+        
+        
 
         st.plotly_chart(fig_tracking, width="stretch")
