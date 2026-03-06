@@ -3,6 +3,7 @@ import subprocess
 import pandas as pd
 import os
 import plotly.express as px
+import plotly.graph_objects as go
 import sys
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -135,6 +136,10 @@ if os.path.exists(result_path):
 
     st.plotly_chart(fig_speed, use_container_width=True)
 
+# -------------------------------------------------------
+# TRACKING VISUALIZATION
+# -------------------------------------------------------
+
 if os.path.exists(tracking_path):
 
     tracking = pd.read_parquet(tracking_path)
@@ -142,49 +147,106 @@ if os.path.exists(tracking_path):
     if {"x_m", "y_m", "player_id", "ts"}.issubset(tracking.columns):
 
         st.divider()
-        st.header("Player Movement Heatmap")
+        st.header("Player Movement Visualization")
 
-        player = st.selectbox(
+        col1, col2 = st.columns(2)
+
+        player = col1.selectbox(
             "Select player",
             sorted(tracking["player_id"].unique())
+        )
+
+        view_mode = col2.selectbox(
+            "Visualization type",
+            ["Trajectory", "Heatmap", "Points"]
         )
 
         player_data = tracking[tracking["player_id"] == player].copy()
         player_data = player_data.sort_values("ts")
 
-        # limit frames to a smaller period
-        player_data = player_data.iloc[:2000]
+        # reduce frames for better visualization
+        player_data = player_data.iloc[:1500]
 
-        st.write(f"Showing movement density for player: **{player}**")
+        st.write(f"Showing movement data for player: **{player}**")
 
-        fig_tracking = px.line(
-            player_data,
-            x="x_m",
-            y="y_m",
-            title=f"Player Movement Path — {player}"
+        # -------------------------------------------------------
+        # TRAJECTORY VIEW
+        # -------------------------------------------------------
+
+        if view_mode == "Trajectory":
+
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=player_data["x_m"],
+                y=player_data["y_m"],
+                mode="lines",
+                line=dict(width=1.5, color="cyan"),
+                name="Trajectory"
+            ))
+
+            pivot_data = player_data.iloc[::40]
+
+            fig.add_trace(go.Scatter(
+                x=pivot_data["x_m"],
+                y=pivot_data["y_m"],
+                mode="markers",
+                marker=dict(size=6, color="yellow"),
+                name="Key positions"
+            ))
+
+        # -------------------------------------------------------
+        # HEATMAP VIEW
+        # -------------------------------------------------------
+
+        elif view_mode == "Heatmap":
+
+            fig = px.density_heatmap(
+                player_data,
+                x="x_m",
+                y="y_m",
+                nbinsx=60,
+                nbinsy=40,
+                color_continuous_scale="YlOrRd"
+            )
+
+        # -------------------------------------------------------
+        # POINT VIEW
+        # -------------------------------------------------------
+
+        else:
+
+            fig = px.scatter(
+                player_data,
+                x="x_m",
+                y="y_m",
+                opacity=0.5
+            )
+
+        # -------------------------------------------------------
+        # DRAW SOCCER FIELD
+        # -------------------------------------------------------
+
+        fig.update_layout(
+            xaxis=dict(range=[0,105], title="Field X Position"),
+            yaxis=dict(range=[0,68], title="Field Y Position"),
+            showlegend=False
         )
 
-        fig_tracking.update_traces(
-            line=dict(width=1),
-            opacity=0.6
+        # field border
+        fig.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
+
+        # midfield line
+        fig.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
+
+        # center circle
+        fig.add_shape(
+            type="circle",
+            x0=52.5-9.15,
+            y0=34-9.15,
+            x1=52.5+9.15,
+            y1=34+9.15,
+            line=dict(color="white")
         )
 
-        pivot_points = px.scatter(
-            player_data.iloc[::25],
-            x="x_m",
-            y="y_m"
-        )
-
-        fig_tracking.add_trace(pivot_points.data[0])
-
-        fig_tracking.update_layout(
-            xaxis_title="Field X Position",
-            yaxis_title="Field Y Position",
-            xaxis=dict(range=[0,105]),
-            yaxis=dict(range=[0,68])
-        )
-
-        fig_tracking.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(color="white"))
-        fig_tracking.add_shape(type="line", x0=52.5, y0=0, x1=52.5, y1=68, line=dict(color="white"))
-
-        st.plotly_chart(fig_tracking, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
