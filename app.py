@@ -134,14 +134,24 @@ if os.path.exists(tracking_path):
 
         st.divider()
 
-        st.header("Player Movement Visualization")
+        st.header("Player Movement Visualization (Top 10 Players)")
+
+        
+        top_players = (
+            tracking["player_id"]
+            .value_counts()
+            .head(10)
+            .index
+        )
+
+        tracking_top = tracking[tracking["player_id"].isin(top_players)]
 
         fig_tracking = px.scatter(
-            tracking,
+            tracking_top,
             x="x",
             y="y",
             color="player_id",
-            title="Player Tracking Positions",
+            title="Player Tracking Positions (Top 10 Players)",
             opacity=0.7
         )
 
@@ -150,4 +160,4 @@ if os.path.exists(tracking_path):
             yaxis_title="Field Y Position"
         )
 
-        st.plotly_chart(fig_tracking, use_container_width=True)
+        st.plotly_chart(fig_tracking, width="stretch")
