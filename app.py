@@ -70,7 +70,7 @@ if uploaded_file is not None:
         st.success("Pipeline completed!")
 
 result_path = "data/analytics/player_session_metrics.csv"
-tracking_path = "data/raw/tracking_clean.parquet"
+tracking_path = "data/processed/tracking_clean.parquet"
 
 if os.path.exists(result_path):
 
