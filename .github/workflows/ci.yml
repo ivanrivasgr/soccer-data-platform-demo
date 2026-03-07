@@ -26,23 +26,17 @@ jobs:
         run: |
           python src/generate_sample_data.py
 
-      - name: Detect generated dataset
-        run: |
-          echo "Detecting CSV dataset..."
-          DATA_FILE=$(ls data/raw/*.csv | head -n 1)
-          echo "DATA_FILE=$DATA_FILE" >> $GITHUB_ENV
-
       - name: Run validation
         run: |
-          python src/validate.py $DATA_FILE
+          python src/validate.py data/raw/tracking_sample.csv
 
       - name: Run transformation
         run: |
-          python src/transform.py $DATA_FILE
+          python src/transform.py data/raw/tracking_sample.csv
 
       - name: Build analytics table
         run: |
-          python src/build_analytics.py $DATA_FILE
+          python src/build_analytics.py data/raw/tracking_sample.csv
 
       - name: Run tests
         run: |
@@ -54,4 +48,3 @@ jobs:
           name: analytics_output
           path: |
             data/analytics/player_session_metrics.csv
-            monitoring/quality_report.json
