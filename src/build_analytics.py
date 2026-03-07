@@ -3,7 +3,23 @@ import sys
 import os
 
 
+def normalize_schema(df):
+
+    # RAW schema
+    if "timestamp" in df.columns:
+        df = df.rename(columns={
+            "timestamp": "ts",
+            "x": "x_m",
+            "y": "y_m",
+            "speed": "speed_mps"
+        })
+
+    return df
+
+
 def build_player_metrics(df):
+
+    df = normalize_schema(df)
 
     df = df.sort_values(["player_id", "ts"])
 
@@ -11,14 +27,11 @@ def build_player_metrics(df):
     df["prev_y"] = df.groupby("player_id")["y_m"].shift()
 
     df["distance_m"] = (
-        ((df["x_m"] - df["prev_x"]) ** 2 + (df["y_m"] - df["prev_y"]) ** 2) ** 0.5
+        ((df["x_m"] - df["prev_x"]) ** 2 +
+         (df["y_m"] - df["prev_y"]) ** 2) ** 0.5
     )
 
     df["distance_m"] = df["distance_m"].fillna(0)
-
-    # --------------------------------
-    # WITH ROLE
-    # --------------------------------
 
     if "role" in df.columns:
 
