@@ -9,6 +9,12 @@ RAW_DIR = os.path.join(PROJECT_ROOT, "data", "raw")
 
 random.seed(42)
 
+# --------------------------------------------
+# PLAYER ROLES
+# --------------------------------------------
+
+ROLES = ["GK", "DEF", "MID", "FWD"]
+
 
 def _rand_walk(prev_x, prev_y, step_mean=0.8, step_std=0.35):
     step = max(0.0, random.gauss(step_mean, step_std))
@@ -23,6 +29,10 @@ def _clip_field(x, y):
     y = min(max(y, 0.0), 68.0)
     return x, y
 
+
+# --------------------------------------------
+# SESSIONS
+# --------------------------------------------
 
 def generate_sessions(n_sessions=4):
 
@@ -49,10 +59,21 @@ def generate_sessions(n_sessions=4):
     return pd.DataFrame(sessions)
 
 
+# --------------------------------------------
+# TRACKING DATA
+# --------------------------------------------
+
 def generate_tracking(sessions_df, n_players=18, hz=1):
 
     rows = []
+
     player_ids = [f"P{i+1:03d}" for i in range(n_players)]
+
+    # assign role once per player
+    player_roles = {
+        pid: random.choice(ROLES)
+        for pid in player_ids
+    }
 
     for _, s in sessions_df.iterrows():
 
@@ -88,16 +109,19 @@ def generate_tracking(sessions_df, n_players=18, hz=1):
                 rows.append({
                     "session_id": s["session_id"],
                     "player_id": pid,
+                    "role": player_roles[pid],   # OPTIONAL COLUMN
                     "timestamp": ts.isoformat(),
                     "x": round(x, 3),
                     "y": round(y, 3),
                     "speed": round(speed, 3)
                 })
 
-    df = pd.DataFrame(rows)
+    return pd.DataFrame(rows)
 
-    return df
 
+# --------------------------------------------
+# MAIN
+# --------------------------------------------
 
 def main():
 
@@ -113,8 +137,8 @@ def main():
     tracking.to_csv(tracking_path, index=False)
 
     print("Generated sample data:")
-    print(f"{sessions_path}")
-    print(f"{tracking_path}")
+    print(sessions_path)
+    print(tracking_path)
 
 
 if __name__ == "__main__":

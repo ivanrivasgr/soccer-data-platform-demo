@@ -5,36 +5,61 @@ import os
 
 def build_player_metrics(df):
 
-    df = df.sort_values(["player_id","timestamp"])
+    df = df.sort_values(["player_id", "ts"])
 
-    df["dx"] = df.groupby("player_id")["x"].diff()
-    df["dy"] = df.groupby("player_id")["y"].diff()
+    df["prev_x"] = df.groupby("player_id")["x_m"].shift()
+    df["prev_y"] = df.groupby("player_id")["y_m"].shift()
 
-    df["distance"] = (df["dx"]**2 + df["dy"]**2)**0.5
-    df["distance"] = df["distance"].fillna(0)
+    df["distance_m"] = (
+        ((df["x_m"] - df["prev_x"]) ** 2 + (df["y_m"] - df["prev_y"]) ** 2) ** 0.5
+    )
 
-    metrics = df.groupby(["player_id","session_id"]).agg(
-        total_distance_m=("distance","sum"),
-        avg_speed=("speed","mean"),
-        max_speed=("speed","max")
-    ).reset_index()
+    df["distance_m"] = df["distance_m"].fillna(0)
+
+    # --------------------------------
+    # WITH ROLE
+    # --------------------------------
+
+    if "role" in df.columns:
+
+        metrics = df.groupby(
+            ["player_id", "role"]
+        ).agg(
+            total_distance_m=("distance_m", "sum"),
+            avg_speed=("speed_mps", "mean"),
+            max_speed=("speed_mps", "max")
+        ).reset_index()
+
+    else:
+
+        metrics = df.groupby(
+            ["player_id"]
+        ).agg(
+            total_distance_m=("distance_m", "sum"),
+            avg_speed=("speed_mps", "mean"),
+            max_speed=("speed_mps", "max")
+        ).reset_index()
 
     return metrics
 
 
-if __name__ == "__main__":
+def main():
 
-    file_path = sys.argv[1]
+    input_file = sys.argv[1]
 
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(input_file)
 
     metrics = build_player_metrics(df)
 
     os.makedirs("data/analytics", exist_ok=True)
 
-    metrics.to_csv(
-        "data/analytics/player_session_metrics.csv",
-        index=False
-    )
+    output_path = "data/analytics/player_session_metrics.csv"
 
-    print("Analytics metrics generated")
+    metrics.to_csv(output_path, index=False)
+
+    print("Analytics metrics generated:")
+    print(output_path)
+
+
+if __name__ == "__main__":
+    main()
