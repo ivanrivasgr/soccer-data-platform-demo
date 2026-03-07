@@ -88,7 +88,7 @@ def generate_tracking(sessions_df, n_players=18, hz=1):
                     "session_id": s["session_id"],
                     "session_type": s["session_type"],
                     "player_id": pid,
-                    "ts": ts.isoformat(),
+                    "timestamp": ts.isoformat(),
                     "x_m": round(x, 3),
                     "y_m": round(y, 3),
                     "speed_mps": round(speed_mps, 3),
