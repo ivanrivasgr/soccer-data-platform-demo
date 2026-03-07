@@ -9,10 +9,6 @@ RAW_DIR = os.path.join(PROJECT_ROOT, "data", "raw")
 
 random.seed(42)
 
-# --------------------------------------------
-# PLAYER ROLES
-# --------------------------------------------
-
 ROLES = ["GK", "DEF", "MID", "FWD"]
 
 
@@ -30,17 +26,11 @@ def _clip_field(x, y):
     return x, y
 
 
-# --------------------------------------------
-# SESSIONS
-# --------------------------------------------
-
 def generate_sessions(n_sessions=4):
-
     sessions = []
     base_date = datetime(2026, 3, 1, 16, 0, 0)
 
     for i in range(n_sessions):
-
         session_id = f"S{i+1:03d}"
         team_id = "TEAM_A" if i % 2 == 0 else "TEAM_B"
         session_type = "match" if i % 2 == 0 else "training"
@@ -59,47 +49,34 @@ def generate_sessions(n_sessions=4):
     return pd.DataFrame(sessions)
 
 
-# --------------------------------------------
-# TRACKING DATA
-# --------------------------------------------
-
 def generate_tracking(sessions_df, n_players=18, hz=1):
-
     rows = []
-
     player_ids = [f"P{i+1:03d}" for i in range(n_players)]
 
-    # assign role once per player
     player_roles = {
         pid: random.choice(ROLES)
         for pid in player_ids
     }
 
     for _, s in sessions_df.iterrows():
-
         start_ts = datetime.fromisoformat(s["start_ts"])
         end_ts = datetime.fromisoformat(s["end_ts"])
-
         total_seconds = int((end_ts - start_ts).total_seconds())
 
         positions = {}
-
         for pid in player_ids:
             x0 = random.uniform(10, 95)
             y0 = random.uniform(5, 63)
             positions[pid] = (x0, y0)
 
         for t in range(0, total_seconds, hz):
-
             ts = start_ts + timedelta(seconds=t)
 
             for pid in player_ids:
-
                 prev_x, prev_y = positions[pid]
 
                 x, y = _rand_walk(prev_x, prev_y)
                 x, y = _clip_field(x, y)
-
                 positions[pid] = (x, y)
 
                 dist = math.sqrt((x - prev_x) ** 2 + (y - prev_y) ** 2)
@@ -109,7 +86,7 @@ def generate_tracking(sessions_df, n_players=18, hz=1):
                 rows.append({
                     "session_id": s["session_id"],
                     "player_id": pid,
-                    "role": player_roles[pid],   # OPTIONAL COLUMN
+                    "role": player_roles[pid],
                     "timestamp": ts.isoformat(),
                     "x": round(x, 3),
                     "y": round(y, 3),
@@ -119,12 +96,7 @@ def generate_tracking(sessions_df, n_players=18, hz=1):
     return pd.DataFrame(rows)
 
 
-# --------------------------------------------
-# MAIN
-# --------------------------------------------
-
 def main():
-
     os.makedirs(RAW_DIR, exist_ok=True)
 
     sessions = generate_sessions()
