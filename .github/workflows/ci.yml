@@ -26,21 +26,27 @@ jobs:
         run: |
           python src/generate_sample_data.py
 
+      - name: Detect generated dataset
+        run: |
+          echo "Detecting CSV dataset..."
+          DATA_FILE=$(ls data/raw/*.csv | head -n 1)
+          echo "DATA_FILE=$DATA_FILE" >> $GITHUB_ENV
+
       - name: Run validation
         run: |
-          python src/validate.py data/raw/sample_tracking.csv
+          python src/validate.py $DATA_FILE
 
       - name: Run transformation
         run: |
-          python src/transform.py data/raw/sample_tracking.csv
+          python src/transform.py $DATA_FILE
 
       - name: Build analytics table
         run: |
-          python src/build_analytics.py data/raw/sample_tracking.csv
+          python src/build_analytics.py $DATA_FILE
 
       - name: Run tests
         run: |
-          PYTHONPATH=. pytest
+          PYTHONPATH=. pytest -v
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
