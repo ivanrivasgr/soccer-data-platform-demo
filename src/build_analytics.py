@@ -1,30 +1,31 @@
-import os
 import pandas as pd
+import sys
+import os
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+file_path = sys.argv[1]
 
-PROCESSED_PATH = os.path.join(PROJECT_ROOT, "data", "processed", "tracking_clean.parquet")
-OUTPUT_PATH = os.path.join(PROJECT_ROOT, "data", "analytics", "player_session_metrics.csv")
+df = pd.read_csv(file_path)
 
+df = df.sort_values(["player_id","timestamp"])
 
-def main():
+df["dx"] = df.groupby("player_id")["x"].diff()
+df["dy"] = df.groupby("player_id")["y"].diff()
 
-    df = pd.read_parquet(PROCESSED_PATH)
+df["distance"] = (df["dx"]**2 + df["dy"]**2)**0.5
 
-    metrics = df.groupby(["player_id", "session_id"]).agg(
+df["distance"] = df["distance"].fillna(0)
 
-        total_distance_m=("distance_m", "sum"),
-        avg_speed=("speed_mps", "mean"),
-        max_speed=("speed_mps", "max"),
-        samples=("speed_mps", "count")
+metrics = df.groupby(["player_id","role"]).agg(
+    total_distance_m=("distance","sum"),
+    avg_speed=("speed","mean"),
+    max_speed=("speed","max")
+).reset_index()
 
-    ).reset_index()
+os.makedirs("data/analytics",exist_ok=True)
 
-    metrics.to_csv(OUTPUT_PATH, index=False)
+metrics.to_csv(
+    "data/analytics/player_session_metrics.csv",
+    index=False
+)
 
-    print("Analytics table created")
-    print(metrics.head())
-
-
-if __name__ == "__main__":
-    main()
+print("Analytics metrics generated")

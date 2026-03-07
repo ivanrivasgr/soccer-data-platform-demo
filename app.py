@@ -136,6 +136,33 @@ if os.path.exists(result_path):
 
     st.plotly_chart(fig_speed, use_container_width=True)
 
+    st.header("Distance by Role")
+
+if "role" in df.columns:
+
+    role_dist = df.groupby("role")["total_distance_m"].sum().reset_index()
+
+    fig_role = px.bar(
+        role_dist,
+        x="role",
+        y="total_distance_m",
+        title="Total Distance by Position"
+    )
+
+    st.plotly_chart(fig_role,use_container_width=True)
+
+st.header("Top Speed by Player")
+
+fig_speed_max = px.bar(
+    df,
+    x="player_id",
+    y="max_speed",
+    color="player_id",
+    title="Maximum Speed per Player"
+)
+
+st.plotly_chart(fig_speed_max,use_container_width=True)
+
 # -------------------------------------------------------
 # TRACKING VISUALIZATION
 # -------------------------------------------------------

@@ -1,62 +1,31 @@
-import os
 import pandas as pd
+import numpy as np
+import sys
+import os
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+file_path = sys.argv[1]
 
-RAW_PATH = os.path.join(PROJECT_ROOT, "data", "raw", "uploaded_tracking.csv")
-QUARANTINE_PATH = os.path.join(PROJECT_ROOT, "data", "quarantine", "tracking_quarantine.csv")
-PROCESSED_PATH = os.path.join(PROJECT_ROOT, "data", "processed", "tracking_clean.parquet")
+df = pd.read_csv(file_path)
 
+df = df.sort_values(["player_id","timestamp"])
 
-def normalize_columns(df):
+df["dx"] = df.groupby("player_id")["x"].diff()
+df["dy"] = df.groupby("player_id")["y"].diff()
 
-    rename_map = {
-        "timestamp": "ts",
-        "x": "x_m",
-        "y": "y_m",
-        "speed": "speed_mps"
-    }
+df["distance"] = np.sqrt(df["dx"]**2 + df["dy"]**2)
 
-    df = df.rename(columns=rename_map)
+df["distance"] = df["distance"].fillna(0)
 
-    return df
+df["x_m"] = df["x"]
+df["y_m"] = df["y"]
 
+df["ts"] = df["timestamp"]
 
-def main():
+os.makedirs("data/processed",exist_ok=True)
 
-    if not os.path.exists(RAW_PATH):
-        print("No dataset found, skipping transform")
-        exit(0)
+df.to_parquet(
+    "data/processed/tracking_clean.parquet",
+    index=False
+)
 
-    df = pd.read_csv(RAW_PATH)
-
-    df = normalize_columns(df)
-
-    os.makedirs(os.path.dirname(PROCESSED_PATH), exist_ok=True)
-
-    if os.path.exists(QUARANTINE_PATH):
-        quarantine = pd.read_csv(QUARANTINE_PATH)
-        df = df.drop(quarantine.index)
-
-    df["ts"] = pd.to_datetime(df["ts"])
-
-    df = df.sort_values(["player_id", "session_id", "ts"])
-
-    df["prev_x"] = df.groupby(["player_id", "session_id"])["x_m"].shift()
-    df["prev_y"] = df.groupby(["player_id", "session_id"])["y_m"].shift()
-
-    df["distance_m"] = (
-        (df["x_m"] - df["prev_x"])**2 +
-        (df["y_m"] - df["prev_y"])**2
-    ) ** 0.5
-
-    df["distance_m"] = df["distance_m"].fillna(0)
-
-    df.to_parquet(PROCESSED_PATH, index=False)
-
-    print("Clean dataset saved")
-    print(PROCESSED_PATH)
-
-
-if __name__ == "__main__":
-    main()
+print("Transform completed")
