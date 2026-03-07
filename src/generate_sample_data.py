@@ -84,13 +84,10 @@ def generate_tracking(sessions_df, n_players=18, hz=1):
                 hr = int(min(max(random.gauss(150, 12), 90), 205))
 
                 rows.append({
-                    "team_id": s["team_id"],
-                    "session_id": s["session_id"],
-                    "session_type": s["session_type"],
                     "player_id": pid,
                     "timestamp": ts.isoformat(),
-                    "x_m": round(x, 3),
-                    "y_m": round(y, 3),
+                    "x": round(x, 3),
+                    "y": round(y, 3),
                     "speed_mps": round(speed_mps, 3),
                     "hr_bpm": hr
                 })
