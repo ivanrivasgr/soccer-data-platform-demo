@@ -4,6 +4,10 @@
 ![Python](https://img.shields.io/badge/python-3.10-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+Live demo dashboard:
+
+https://soccer-data-platform-demo-2ysoonreyzjsuspa2kf6ve.streamlit.app/
+
 Example of an end-to-end data engineering pipeline for soccer tracking analytics.
 
 This project simulates a production-style sports analytics data platform including data ingestion, validation, transformation, analytics modeling, and infrastructure examples.
@@ -26,23 +30,52 @@ The pipeline follows a modern **Bronze → Silver → Gold** data architecture.
 
 ---
 
+# Dashboard
+
+The project includes an interactive **Streamlit dashboard** to explore the analytics outputs.
+
+The dashboard allows users to visualize:
+
+- player movement trajectories on the field
+- player distance covered
+- speed distribution
+- session performance metrics
+
+Run locally:
+
+```bash
+streamlit run app.py
+```
+
+---
+
 ## Project Structure
 
 ```
 soccer-data-platform-demo
 │
-├── src/                 # pipeline scripts
-├── data/                # generated sample datasets
-├── monitoring/          # data quality reports
-├── airflow/             # example orchestration DAG
-├── terraform/           # infrastructure-as-code example
-├── architecture/        # pipeline architecture diagram
-├── tests/               # placeholder for pipeline tests
-├── config/              # configuration placeholders
+├── src/ # pipeline scripts
+│ ├── generate_sample_data.py
+│ ├── validate.py
+│ ├── transform.py
+│ └── build_analytics.py
 │
-├── .github/workflows    # CI/CD pipeline
-├── Makefile             # run full pipeline locally
-├── requirements.txt     # python dependencies
+├── data/ # generated and processed datasets
+│ ├── raw/
+│ ├── processed/
+│ └── analytics/
+│
+├── monitoring/ # data quality reports
+├── airflow/ # example orchestration DAG
+├── terraform/ # infrastructure-as-code example
+├── architecture/ # pipeline architecture diagram
+├── tests/ # automated pipeline tests (pytest)
+├── config/ # configuration placeholders
+│
+├── app.py # Streamlit analytics dashboard
+├── .github/workflows # CI/CD pipeline
+├── Makefile # run full pipeline locally
+├── requirements.txt # python dependencies
 └── README.md
 ```
 
@@ -81,7 +114,7 @@ python src/validate.py
 
 ---
 
-### 3️3 Data Transformation
+### 3️ Data Transformation
 
 Validated tracking data is transformed into a structured dataset suitable for analytics.
 
@@ -106,6 +139,8 @@ Example metrics:
 | player_id | session_id | total_distance_m | avg_speed | max_speed |
 |-----------|-----------|-----------------|-----------|-----------|
 | P001 | S001 | 10234 | 2.7 | 8.1 |
+
+This table feeds the Streamlit dashboard for visualization.
 
 Output location:
 
@@ -159,6 +194,25 @@ Location:
 ```
 
 This demonstrates how a data pipeline can be continuously validated during development.
+
+---
+
+## Automated Testing
+
+The project includes automated tests using **pytest** to validate pipeline components.
+
+Tests cover:
+
+- validation schema checks
+- transformation outputs
+- analytics table generation
+
+Run tests locally:
+
+```bash
+pytest
+```
+These tests are automatically executed by the CI pipeline.
 
 ---
 
@@ -258,7 +312,7 @@ This repository demonstrates:
 - infrastructure-as-code patterns  
 - workflow orchestration design  
 
-The project is intended as a **portfolio demonstration of modern data engineering practices applied to sports analytics**.
+The project is intended as a **portfolio demonstration of modern data engineering practices applied to sports analytics**, including reproducible pipelines, data validation, CI/CD automation, and interactive analytics dashboards.
 
 
 
