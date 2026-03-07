@@ -15,11 +15,6 @@ def transform_tracking_data(df):
 
     df["distance"] = df["distance"].fillna(0)
 
-    df["x_m"] = df["x"]
-    df["y_m"] = df["y"]
-
-    df["ts"] = df["timestamp"]
-
     return df
 
 

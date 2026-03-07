@@ -1,6 +1,7 @@
 import pandas as pd
 import sys
 
+
 def validate_tracking_data(df):
 
     required_columns = [

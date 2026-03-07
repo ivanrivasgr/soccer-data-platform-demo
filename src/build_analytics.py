@@ -11,10 +11,9 @@ def build_player_metrics(df):
     df["dy"] = df.groupby("player_id")["y"].diff()
 
     df["distance"] = (df["dx"]**2 + df["dy"]**2)**0.5
-
     df["distance"] = df["distance"].fillna(0)
 
-    metrics = df.groupby(["player_id","role"]).agg(
+    metrics = df.groupby(["player_id","session_id"]).agg(
         total_distance_m=("distance","sum"),
         avg_speed=("speed","mean"),
         max_speed=("speed","max")
@@ -31,7 +30,7 @@ if __name__ == "__main__":
 
     metrics = build_player_metrics(df)
 
-    os.makedirs("data/analytics",exist_ok=True)
+    os.makedirs("data/analytics", exist_ok=True)
 
     metrics.to_csv(
         "data/analytics/player_session_metrics.csv",
