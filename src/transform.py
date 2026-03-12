@@ -1,43 +1,54 @@
-import os
 import pandas as pd
-
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-RAW_PATH = os.path.join(PROJECT_ROOT, "data", "raw", "tracking_sample.csv")
-QUARANTINE_PATH = os.path.join(PROJECT_ROOT, "data", "quarantine", "tracking_quarantine.csv")
-PROCESSED_PATH = os.path.join(PROJECT_ROOT, "data", "processed", "tracking_clean.parquet")
+import numpy as np
+import sys
+import os
 
 
-def main():
+def transform_tracking_data(df):
+    # Support RAW schema used by tests and uploads
+    if "timestamp" in df.columns:
+        df = df.sort_values(["player_id", "timestamp"])
 
-    df = pd.read_csv(RAW_PATH)
-    quarantine = pd.read_csv(QUARANTINE_PATH)
+        df["dx"] = df.groupby("player_id")["x"].diff()
+        df["dy"] = df.groupby("player_id")["y"].diff()
 
-    # remove quarantined rows
-    df_clean = df.drop(quarantine.index)
+        df["distance"] = np.sqrt(df["dx"]**2 + df["dy"]**2)
+        df["distance"] = df["distance"].fillna(0)
 
-    # convert timestamp
-    df_clean["ts"] = pd.to_datetime(df_clean["ts"])
+        # Standardized columns for downstream app / parquet output
+        df["ts"] = df["timestamp"]
+        df["x_m"] = df["x"]
+        df["y_m"] = df["y"]
+        df["speed_mps"] = df["speed"]
 
-    # sort for trajectory calculations
-    df_clean = df_clean.sort_values(["player_id", "session_id", "ts"])
+        return df
 
-    # compute distance travelled between points
-    df_clean["prev_x"] = df_clean.groupby(["player_id", "session_id"])["x_m"].shift()
-    df_clean["prev_y"] = df_clean.groupby(["player_id", "session_id"])["y_m"].shift()
+    # Support already-transformed schema if ever passed in
+    if {"ts", "x_m", "y_m", "speed_mps"}.issubset(df.columns):
+        df = df.sort_values(["player_id", "ts"])
 
-    df_clean["distance_m"] = (
-        (df_clean["x_m"] - df_clean["prev_x"])**2 +
-        (df_clean["y_m"] - df_clean["prev_y"])**2
-    ) ** 0.5
+        df["dx"] = df.groupby("player_id")["x_m"].diff()
+        df["dy"] = df.groupby("player_id")["y_m"].diff()
 
-    df_clean["distance_m"] = df_clean["distance_m"].fillna(0)
+        df["distance"] = np.sqrt(df["dx"]**2 + df["dy"]**2)
+        df["distance"] = df["distance"].fillna(0)
 
-    df_clean.to_parquet(PROCESSED_PATH, index=False)
+        return df
 
-    print("Clean dataset saved")
-    print(PROCESSED_PATH)
+    raise ValueError("Unsupported schema for transform_tracking_data")
 
 
 if __name__ == "__main__":
-    main()
+    file_path = sys.argv[1]
+
+    df = pd.read_csv(file_path)
+    df = transform_tracking_data(df)
+
+    os.makedirs("data/processed", exist_ok=True)
+
+    df.to_parquet(
+        "data/processed/tracking_clean.parquet",
+        index=False
+    )
+
+    print("Transform completed")
