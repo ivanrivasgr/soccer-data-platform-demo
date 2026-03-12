@@ -4,9 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.10-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Live demo dashboard:
-
-https://soccer-data-platform-demo-2ysoonreyzjsuspa2kf6ve.streamlit.app/
+[Live Demo →](https://soccer-data-platform-demo-2ysoonreyzjsuspa2kf6ve.streamlit.app/)
 
 Example of an end-to-end data engineering pipeline for soccer tracking analytics.
 
@@ -90,7 +88,7 @@ The pipeline simulates a typical sports tracking analytics workflow.
 Synthetic player tracking data is generated to simulate GPS data collected during soccer sessions.
 
 ```
-python src/generate_sample_data.py
+python src/generate_sample_date.py
 ```
 
 ---
