@@ -296,13 +296,19 @@ elif page == "Player Movement":
             kde = gaussian_kde(np.vstack([x_vals, y_vals]), bw_method=0.12)
             zi  = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
  
+            colorscale_transparent = [
+                [0.0,  "rgba(0,0,0,0)"],
+                [0.15, "rgba(0,0,0,0)"],
+                [0.3,  "rgba(255,200,0,0.6)"],
+                [0.6,  "rgba(255,80,0,0.85)"],
+                [1.0,  "rgba(180,0,0,1.0)"],
+            ]
             fig.add_trace(go.Heatmap(
                 z=zi, x=xi, y=yi,
-                colorscale="Hot",
-                reversescale=True,
-                opacity=0.75,
+                colorscale=colorscale_transparent,
+                reversescale=False,
                 showscale=False,
-                zsmooth="best",       
+                zsmooth="best",
                 name="Density"
             ))
  
