@@ -88,7 +88,7 @@ The pipeline simulates a typical sports tracking analytics workflow.
 Synthetic player tracking data is generated to simulate GPS data collected during soccer sessions.
 
 ```
-python src/generate_sample_date.py
+python src/generate_sample_data.py
 ```
 
 ---
